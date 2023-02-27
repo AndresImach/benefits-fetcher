@@ -87,7 +87,16 @@ async function run() {
     }
 
     // console.log("okArray", okArray)
-    await client.db(mongo_database).collection(mongo_collection).insertMany(okArray)
+    // await client.db(mongo_database).collection(mongo_collection).insertMany(okArray)
+    const updateOps = okArray.map((item) => ({
+      updateOne: {
+        filter: {"beneficio.id": item.beneficio.id},
+        update: { $set: item },
+        upsert: true
+      }
+    }));
+    const resp = await client.db(mongo_database).collection(mongo_collection).bulkWrite(updateOps)
+    console.log("Data upserted to MongoDB", resp)
     fs.writeFile('temp/okFile.json', JSON.stringify(okArray), function (err) {
       if (err) throw err;
       console.log('Array saved to file!');
