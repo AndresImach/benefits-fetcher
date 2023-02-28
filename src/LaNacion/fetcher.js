@@ -80,30 +80,17 @@ async function run() {
     }
     console.log("okArray length", okArray.length)
 
-    // for (let id of benefitsIds) {
-    //   await makeRequestWithBackoff(`https://www.bancociudad.com.ar/beneficios_rest/beneficios/${id}`, {"header":{},"data":{"latitud":null,"longitud":null}})
-    //     .then((res) => {
-    //       console.log(`Getting benefit ${id}`)
-    //       let data = res;
-    //       if (data.mensaje !== "OK") throw new Error('Ciudad: reponse not OK')
-    //       okArray.push(data.retorno)
-    //     })
-    //     .catch(error => {
-    //       console.log(`Error fetching data for ${id}: ${error.message}`);
-    //     })
-    // }
-
     // console.log("okArray", okArray)
-    await client.db(mongo_database).collection(mongo_collection).insertMany(okArray)
-    // const updateOps = okArray.map((item) => ({
-    //   updateOne: {
-    //     filter: {"beneficio.id": item.beneficio.id},
-    //     update: { $set: item },
-    //     upsert: true
-    //   }
-    // }));
-    // const resp = await client.db(mongo_database).collection(mongo_collection).bulkWrite(updateOps)
-    // console.log("Data upserted to MongoDB", resp)
+    // await client.db(mongo_database).collection(mongo_collection).insertMany(okArray)
+    const updateOps = okArray.map((item) => ({
+      updateOne: {
+        filter: {"beneficio.id": item.id},
+        update: { $set: item },
+        upsert: true
+      }
+    }));
+    const resp = await client.db(mongo_database).collection(mongo_collection).bulkWrite(updateOps)
+    console.log("Data upserted to MongoDB", resp)
     fs.writeFile('temp/okFile.json', JSON.stringify(okArray), function (err) {
       if (err) throw err;
       console.log('Array saved to file!');

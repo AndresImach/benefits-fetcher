@@ -82,7 +82,7 @@ async function run() {
     // await client.db(mongo_database).collection(mongo_collection).insertMany(okArray)
     const updateOps = okArray.map((item) => ({
       updateOne: {
-        filter: {"beneficio.id": item.beneficio.id},
+        filter: {"beneficio.id": item.id},
         update: { $set: item },
         upsert: true
       }
