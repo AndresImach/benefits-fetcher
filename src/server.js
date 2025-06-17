@@ -5,14 +5,17 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 
 const app = express();
 
-// Log all incoming requests
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`);
-  next();
-});
+// Cache the database connection
+let cachedDb = null;
 
 app.use(cors());
 app.use(express.json());
+
+// Log all requests
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
 const mongoUrl = process.env.MONGO_URL;
 const mongo_database = 'Benefits';
@@ -30,82 +33,60 @@ const getCollectionName = (bank) => {
   return collections[bank.toUpperCase()];
 };
 
-const client = new MongoClient(mongoUrl, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverApi: ServerApiVersion.v1
-});
-
 // Function to connect to MongoDB
 async function connectToMongoDB() {
+  if (cachedDb) {
+    return cachedDb;
+  }
+
   try {
-    if (!client.isConnected) {
-      await client.connect();
-      console.log('Connected to MongoDB');
-    }
-  } catch (err) {
-    console.error('MongoDB connection error:', err);
-    throw err;
+    const client = new MongoClient(mongoUrl, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverApi: ServerApiVersion.v1
+    });
+
+    await client.connect();
+    console.log('Connected to MongoDB');
+    
+    cachedDb = client.db(mongo_database);
+    return cachedDb;
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    throw error;
   }
 }
 
-// Get all benefits from a specific bank
-// app.get('/api/benefits/BBVA_GO_V3', async (req, res) => {
-//   try {
-//     const { bank } = req.params;
-//     const collectionName = getCollectionName(bank);
-    
-//     console.log('Fetching from database:', mongo_database);
-//     console.log('Collection:', collectionName);
-    
-//     if (!collectionName) {
-//       throw new Error(`Invalid bank: ${bank}`);
-//     }
-    
-//     const db = client.db(mongo_database);
-//     const collections = await db.listCollections().toArray();
-//     console.log('Available collections:', collections.map(c => c.name));
-    
-//     const benefits = await db
-//       .collection(collectionName)
-//       .find({})
-//       .toArray();
-    
-//     console.log(`Found ${benefits.length} benefits for ${bank}`);
-    
-//     res.json(benefits);
-//   } catch (error) {
-//     console.error('Error fetching benefits:', error);
-//     res.status(500).json({ error: 'Internal server error', details: error.message });
-//   }
-// });
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
 
-// Get all benefits from all banks
-app.get('/api/benefits', async (req, res) => {
+// Get all benefits for a specific bank
+app.get('/api/:bank', async (req, res) => {
+  const { bank } = req.params;
+  const collectionName = getCollectionName(bank);
+  
+  if (!collectionName) {
+    return res.status(400).json({ error: 'Invalid bank name' });
+  }
+
   try {
-    const banks = ['BBVA', 'CIUDAD', 'ICBC', 'SANTANDER', 'SUPERVILLE', 'PERSONAL'];
-    const allBenefits = {};
-
-    for (const bank of banks) {
-      const collectionName = getCollectionName(bank);
-      if (collectionName) {
-        const benefits = await client
-          .db(mongo_database)
-          .collection(collectionName)
-          .find({})
-          .toArray();
-      
-        allBenefits[collectionName] = benefits;
-      }
-    }
-
-    res.json(allBenefits);
+    const db = await connectToMongoDB();
+    const collection = db.collection(collectionName);
+    const benefits = await collection.find({}).toArray();
+    res.json(benefits);
   } catch (error) {
-    console.error('Error fetching all benefits:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error(`Error fetching benefits for ${bank}:`, error);
+    res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
 
-app.listen(port, () => {
-  console.log(`API server running on port ${port}`);
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ error: 'Internal server error', details: err.message });
 });
+
+// Export the app for serverless deployment
+module.exports = app;

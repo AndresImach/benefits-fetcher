@@ -83,9 +83,35 @@ node src/BBVA/fetcher.js
 
 ## Deployment
 
-You can deploy this application using several methods:
+This application is deployed on Vercel. To deploy your own instance:
 
-### Using Railway (Recommended)
+### Using Vercel (Current Method)
+
+1. Install Vercel CLI:
+
+```bash
+npm i -g vercel
+```
+
+2. Login to Vercel:
+
+```bash
+vercel login
+```
+
+3. Deploy the application:
+
+```bash
+vercel
+```
+
+4. Add environment variables in Vercel Dashboard:
+   - Go to your project settings
+   - Add `MONGO_URL` with your MongoDB connection string
+
+The deployment is configured via `vercel.json` in the root directory.
+
+### Alternative Deployment Methods
 
 1. Create an account on [Railway](https://railway.app/)
 2. Connect your GitHub repository
