@@ -30,7 +30,7 @@ const getCollectionName = (bank) => {
     'SUPERVILLE': 'SUPERVILLE',
     'PERSONAL': 'PERSONAL'
   };
-  return collections[bank.toUpperCase()];
+  return collections[bank] || bank;
 };
 
 // Function to connect to MongoDB
@@ -82,10 +82,20 @@ app.get('/api/:bank', async (req, res) => {
   }
 });
 
+// Add root route handler
+app.get('/', (req, res) => {
+  res.json({ status: 'ok', message: 'Benefits Fetcher API is running' });
+});
+
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(500).json({ error: 'Internal server error', details: err.message });
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
 
 // Export the app for serverless deployment
