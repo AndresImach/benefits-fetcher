@@ -4,7 +4,6 @@ const cors = require('cors');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
 const app = express();
-const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -31,10 +30,18 @@ const client = new MongoClient(mongoUrl, {
   serverApi: ServerApiVersion.v1
 });
 
-// Connect to MongoDB
-client.connect()
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+// Function to connect to MongoDB
+async function connectToMongoDB() {
+  try {
+    if (!client.isConnected) {
+      await client.connect();
+      console.log('Connected to MongoDB');
+    }
+  } catch (err) {
+    console.error('MongoDB connection error:', err);
+    throw err;
+  }
+}
 
 // Get all benefits from a specific bank
 // app.get('/api/benefits/BBVA_GO_V3', async (req, res) => {
