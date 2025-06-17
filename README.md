@@ -81,6 +81,58 @@ node src/BBVA/fetcher.js
 - `src/[BankName]/fetcher.js` - Individual bank fetchers
 - `src/[BankName]/test.js` - Test files for bank fetchers
 
+## Deployment
+
+You can deploy this application using several methods:
+
+### Using Railway (Recommended)
+
+1. Create an account on [Railway](https://railway.app/)
+2. Connect your GitHub repository
+3. Add the following environment variables in Railway:
+   - `MONGO_URL`: Your MongoDB connection string
+   - `PORT`: 3000 (Railway will automatically assign a port)
+4. Deploy the application
+
+### Using Render
+
+1. Create an account on [Render](https://render.com/)
+2. Create a new Web Service
+3. Connect your GitHub repository
+4. Set the following:
+   - Build Command: `npm install`
+   - Start Command: `npm start`
+5. Add environment variables:
+   - `MONGO_URL`: Your MongoDB connection string
+   - `PORT`: 3000
+
+### Using Heroku
+
+1. Install Heroku CLI
+2. Login to Heroku:
+
+```bash
+heroku login
+```
+
+3. Create a new Heroku app:
+
+```bash
+heroku create your-app-name
+```
+
+4. Add environment variables:
+
+```bash
+heroku config:set MONGO_URL=your_mongodb_connection_string
+```
+
+5. Deploy:
+
+```bash
+git push heroku main
+```
+
 ## Contributing
 
 1. Fork the repository
