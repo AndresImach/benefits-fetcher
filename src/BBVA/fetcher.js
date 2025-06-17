@@ -8,7 +8,7 @@ const fs = require("fs");
 const isLocal = false;
 var mongoUrl = '';
 if (isLocal) {
-  mongoUrl = "mongodb://localhost:27017/?maxPoolSize=20&w=majority";
+  mongoUrl = process.env.MONGO_URL/benefits/BBVA_GO_V3;
 } else {
   mongoUrl = process.env.MONGO_URL;
 }
